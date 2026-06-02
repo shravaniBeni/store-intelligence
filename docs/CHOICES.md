@@ -30,4 +30,12 @@ The ingest endpoint is idempotent by `event_id` and accepts partial success beca
 
 The camera-role mapping is intentionally configurable through `data/camera_config.json`. The current roles are an initial camera-role mapping based on visual inspection, not a permanent assumption baked into code. If the evaluator or operator determines that camera roles differ in the actual footage, the config can be edited without changing the pipeline logic.
 
-For the reviewed sample, conversion rate is `0`. This is not hardcoded. The detected billing queue events occur around `20:09-20:10Z`, while the relevant later POS transaction in the normalized POS file is at `20:25:04Z`. Because the challenge defines conversion as a visitor being in the billing zone during the 5-minute window before a POS transaction, the reviewed event sample does not produce a converted visitor.
+For the reviewed sample, conversion rate is `0` for the reviewed sample. This is not hardcoded. The detected billing queue events occur around `20:09-20:10Z`, while the relevant later POS transaction in the normalized POS file is at `20:25:04Z`. Because the challenge defines conversion as a visitor being in the billing zone during the 5-minute window before a POS transaction, the reviewed event sample does not produce a converted visitor.
+
+## 4. Dashboard Choice
+
+A lightweight dashboard was implemented using plain HTML, CSS, and JavaScript rather than a frontend framework. The goal was to maximize reviewer reproducibility and avoid introducing build-tool dependencies. The dashboard consumes the existing API endpoints directly and provides live operational visibility through automatic refresh without requiring additional backend services.
+
+## 5. Deployment Choice
+
+Docker Compose was selected so evaluators can reproduce the submission with a single command. The container bundles API, analytics, and storage dependencies while avoiding external service requirements.
