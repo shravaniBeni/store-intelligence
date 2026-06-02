@@ -34,15 +34,16 @@ async def structured_logging(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)
     latency_ms = round((time.perf_counter() - start) * 1000, 2)
-    logger.info(
-        {
-            "trace_id": trace_id,
-            "store_id": request.path_params.get("id"),
-            "endpoint": request.url.path,
-            "latency_ms": latency_ms,
-            "status_code": response.status_code,
-        }
-    )
+    log_payload = {
+        "trace_id": trace_id,
+        "store_id": request.path_params.get("id"),
+        "endpoint": request.url.path,
+        "latency_ms": latency_ms,
+        "status_code": response.status_code,
+    }
+    if request.method == "POST" and request.url.path == "/events/ingest":
+        log_payload["event_count"] = getattr(request.state, "event_count", None)
+    logger.info(log_payload)
     response.headers["x-trace-id"] = trace_id
     return response
 
@@ -60,8 +61,9 @@ async def unhandled_exception(_: Request, exc: Exception):
 
 
 @app.post("/events/ingest", response_model=IngestResponse)
-async def ingest(payload: Any = Body(...)):
+async def ingest(request: Request, payload: Any = Body(...)):
     raw_events = payload.get("events", payload) if isinstance(payload, dict) else payload
+    request.state.event_count = len(raw_events) if isinstance(raw_events, list) else None
     if not isinstance(raw_events, list) or len(raw_events) > 500:
         return JSONResponse(
             status_code=422,

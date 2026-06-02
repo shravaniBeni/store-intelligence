@@ -28,7 +28,7 @@
 
 ## Validation Results
 
-- PASS - `python -m pytest --cov=app --cov=pipeline tests`: 14 passed, total coverage 89%.
+- PASS - `python -m pytest --cov=app --cov=pipeline tests`: 15 passed, total coverage 89%.
 - PASS - Coverage target: 89% total coverage, above the >70% challenge target.
 - PASS - Prompt blocks: every test file includes `# PROMPT:` and `# CHANGES MADE:`.
 - PASS - `python -m compileall app pipeline tests -q`: passed.
@@ -40,7 +40,7 @@
 - PASS - Docker `GET /stores/ST1008/heatmap`: returned 200.
 - PASS - Docker `GET /stores/ST1008/anomalies`: returned 200.
 - PASS - Docker `GET /health`: returned 200.
-- PASS - Structured logs include trace_id, store_id, endpoint, latency_ms, and status_code.
+- PASS - Structured logs include trace_id, store_id, endpoint, latency_ms, event_count for ingest, and status_code.
 - PASS - Local API replay: accepted 161, duplicates 0, failed 0.
 - PASS - Local metrics: unique_visitors 56, queue_depth 4.
 - PASS - Local funnel: coherent stage counts.

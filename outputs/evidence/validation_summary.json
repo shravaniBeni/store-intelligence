@@ -21,8 +21,8 @@
     "conversion_rate": 0
   },
   "coverage": {
-    "tests": 14,
-    "passed": 14,
+    "tests": 15,
+    "passed": 15,
     "total_percent": 89,
     "status": "PASS"
   },
@@ -60,6 +60,7 @@
       "store_id",
       "endpoint",
       "latency_ms",
+      "event_count",
       "status_code"
     ]
   }

@@ -22,6 +22,7 @@ Structured logging:
 - Logs include store_id
 - Logs include endpoint
 - Logs include latency_ms
+- Logs include event_count for POST /events/ingest
 - Logs include status_code
 
 Conclusion:
