@@ -169,6 +169,66 @@
       background: var(--accent);
     }
 
+    .chart {
+      margin-bottom: 14px;
+    }
+
+    .svg-chart {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .svg-label {
+      color: var(--muted);
+      fill: var(--muted);
+      font-size: 12px;
+    }
+
+    .svg-value {
+      fill: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .svg-track {
+      fill: #eef2f6;
+    }
+
+    .svg-fill {
+      fill: var(--accent);
+    }
+
+    .svg-fill-secondary {
+      fill: #2f8f6f;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+
+    .legend-swatch.secondary {
+      background: #2f8f6f;
+    }
+
     .badge {
       display: inline-block;
       border-radius: 999px;
@@ -244,6 +304,7 @@
     <section class="grid">
       <div class="panel">
         <h2>Funnel stages</h2>
+        <div id="funnelChart" class="chart"></div>
         <table>
           <thead>
             <tr>
@@ -258,6 +319,7 @@
 
       <div class="panel">
         <h2>Heatmap zones</h2>
+        <div id="zoneChart" class="chart"></div>
         <table>
           <thead>
             <tr>
@@ -303,6 +365,8 @@
   <script>
     const statusEl = document.getElementById("status");
     const storeInput = document.getElementById("storeId");
+    const REFRESH_INTERVAL_MS = 8000;
+    let isLoading = false;
 
     function pct(value) {
       return `${Math.round((Number(value) || 0) * 1000) / 10}%`;
@@ -334,6 +398,110 @@
       rows.forEach((row) => tbody.appendChild(render(row)));
     }
 
+    function emptyChart(id, message) {
+      const chart = document.getElementById(id);
+      chart.innerHTML = "";
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = message;
+      chart.appendChild(empty);
+    }
+
+    function renderFunnelChart(stages) {
+      const chart = document.getElementById("funnelChart");
+      chart.innerHTML = "";
+      if (!stages.length) {
+        emptyChart("funnelChart", "No funnel data");
+        return;
+      }
+      const rowHeight = 34;
+      const height = stages.length * rowHeight + 10;
+      const svg = makeSvg(640, height);
+      const maxCount = Math.max(...stages.map((stage) => Number(stage.count) || 0), 1);
+      stages.forEach((stage, index) => {
+        const y = index * rowHeight + 8;
+        const count = Number(stage.count) || 0;
+        const width = Math.max(3, Math.round((count / maxCount) * 420));
+        svg.append(svgText(stage.stage, 0, y + 17, "svg-label"));
+        svg.append(svgRect(130, y, 420, 18, "svg-track"));
+        svg.append(svgRect(130, y, width, 18, "svg-fill"));
+        svg.append(svgText(String(stage.count ?? 0), 565, y + 17, "svg-value"));
+      });
+      chart.append(svg);
+    }
+
+    function renderZoneChart(zones) {
+      const chart = document.getElementById("zoneChart");
+      chart.innerHTML = "";
+      if (!zones.length) {
+        emptyChart("zoneChart", "No heatmap data");
+        return;
+      }
+      const legend = document.createElement("div");
+      legend.className = "chart-legend";
+      legend.append(legendItem("Visit score", "legend-swatch"));
+      legend.append(legendItem("Avg dwell", "legend-swatch secondary"));
+      chart.append(legend);
+
+      const rowHeight = 42;
+      const height = zones.length * rowHeight + 10;
+      const svg = makeSvg(640, height);
+      const maxDwell = Math.max(...zones.map((zone) => Number(zone.avg_dwell_ms) || 0), 1);
+      zones.forEach((zone, index) => {
+        const y = index * rowHeight + 7;
+        const visitWidth = Math.max(3, Math.round(((Number(zone.normalized_score) || 0) / 100) * 360));
+        const dwellWidth = Math.max(3, Math.round(((Number(zone.avg_dwell_ms) || 0) / maxDwell) * 360));
+        svg.append(svgText(zone.zone_id, 0, y + 19, "svg-label"));
+        svg.append(svgRect(150, y, 360, 12, "svg-track"));
+        svg.append(svgRect(150, y, visitWidth, 12, "svg-fill"));
+        svg.append(svgRect(150, y + 17, 360, 12, "svg-track"));
+        svg.append(svgRect(150, y + 17, dwellWidth, 12, "svg-fill-secondary"));
+        svg.append(svgText(`${zone.visit_frequency ?? 0} visits`, 525, y + 11, "svg-value"));
+        svg.append(svgText(ms(zone.avg_dwell_ms), 525, y + 28, "svg-label"));
+      });
+      chart.append(svg);
+    }
+
+    function legendItem(label, swatchClass) {
+      const item = document.createElement("span");
+      const swatch = document.createElement("span");
+      const text = document.createElement("span");
+      item.className = "legend-item";
+      swatch.className = swatchClass;
+      text.textContent = label;
+      item.append(swatch, text);
+      return item;
+    }
+
+    function makeSvg(width, height) {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("class", "svg-chart");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-hidden", "true");
+      return svg;
+    }
+
+    function svgRect(x, y, width, height, className) {
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", x);
+      rect.setAttribute("y", y);
+      rect.setAttribute("width", width);
+      rect.setAttribute("height", height);
+      rect.setAttribute("rx", 4);
+      rect.setAttribute("class", className);
+      return rect;
+    }
+
+    function svgText(text, x, y, className) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      node.setAttribute("x", x);
+      node.setAttribute("y", y);
+      node.setAttribute("class", className);
+      node.textContent = text ?? "";
+      return node;
+    }
+
     async function getJson(url) {
       const response = await fetch(url);
       if (!response.ok) {
@@ -343,6 +511,10 @@
     }
 
     async function loadDashboard() {
+      if (isLoading) {
+        return;
+      }
+      isLoading = true;
       const storeId = storeInput.value.trim() || "ST1008";
       statusEl.textContent = `Loading ${storeId}...`;
       try {
@@ -358,6 +530,7 @@
         document.getElementById("queueDepth").textContent = metrics.queue_depth ?? "-";
         document.getElementById("anomalyCount").textContent = anomalies.active_anomalies?.length ?? 0;
 
+        renderFunnelChart(funnel.stages || []);
         setRows("funnelRows", funnel.stages || [], (stage) => {
           const tr = document.createElement("tr");
           tr.append(cell(stage.stage));
@@ -366,6 +539,7 @@
           return tr;
         }, "No funnel data");
 
+        renderZoneChart(heatmap.zones || []);
         setRows("heatmapRows", heatmap.zones || [], (zone) => {
           const tr = document.createElement("tr");
           tr.append(cell(zone.zone_id));
@@ -406,11 +580,14 @@
         statusEl.textContent = `Updated ${new Date().toLocaleTimeString()} for ${storeId}`;
       } catch (error) {
         statusEl.textContent = `Dashboard load failed: ${error.message}`;
+      } finally {
+        isLoading = false;
       }
     }
 
     document.getElementById("refresh").addEventListener("click", loadDashboard);
     loadDashboard();
+    window.setInterval(loadDashboard, REFRESH_INTERVAL_MS);
   </script>
 </body>
 </html>
