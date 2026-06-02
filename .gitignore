@@ -1,0 +1,44 @@
+# Python caches / coverage
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments and local dependency installs
+.venv/
+venv/
+env/
+work/
+work/pydeps/
+
+# Runtime databases
+*.db
+*.sqlite
+*.sqlite3
+data/store_intelligence.db
+data/test_store_intelligence.db
+
+# Model weights and ML caches
+*.pt
+yolov8n.pt
+Ultralytics/
+runs/
+
+# Raw CCTV / challenge media
+*.mp4
+data/raw/
+
+# CCTV-derived visual evidence
+outputs/evidence/annotated_screenshots/
+*.jpg
+*.jpeg
+*.png
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

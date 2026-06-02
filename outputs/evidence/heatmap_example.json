@@ -1,0 +1,36 @@
+﻿{
+    "store_id":  "ST1008",
+    "data_confidence":  "HIGH",
+    "zones":  [
+                  {
+                      "zone_id":  "SKINCARE_WALL",
+                      "visit_frequency":  9,
+                      "avg_dwell_ms":  40400,
+                      "normalized_score":  30.0
+                  },
+                  {
+                      "zone_id":  "MAKEUP_WALL",
+                      "visit_frequency":  30,
+                      "avg_dwell_ms":  43242.86,
+                      "normalized_score":  100.0
+                  },
+                  {
+                      "zone_id":  "ACCESSORIES",
+                      "visit_frequency":  5,
+                      "avg_dwell_ms":  0,
+                      "normalized_score":  16.67
+                  },
+                  {
+                      "zone_id":  "PMU",
+                      "visit_frequency":  13,
+                      "avg_dwell_ms":  71625,
+                      "normalized_score":  43.33
+                  },
+                  {
+                      "zone_id":  "BILLING",
+                      "visit_frequency":  3,
+                      "avg_dwell_ms":  0,
+                      "normalized_score":  10.0
+                  }
+              ]
+}

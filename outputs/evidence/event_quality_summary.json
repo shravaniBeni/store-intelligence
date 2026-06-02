@@ -1,0 +1,28 @@
+{
+  "schema_valid": 161,
+  "total_events": 161,
+  "event_types": {
+    "ZONE_ENTER": 70,
+    "ZONE_EXIT": 11,
+    "ZONE_DWELL": 62,
+    "ENTRY": 6,
+    "EXIT": 3,
+    "REENTRY": 3,
+    "BILLING_QUEUE_JOIN": 6
+  },
+  "cameras": {
+    "CAM_1": 50,
+    "CAM_2": 80,
+    "CAM_3": 19,
+    "CAM_5": 12
+  },
+  "zones": {
+    "SKINCARE_WALL": 32,
+    "PMU": 34,
+    "MAKEUP_WALL": 59,
+    "ACCESSORIES": 5,
+    "None": 12,
+    "ENTRY_THRESHOLD": 7,
+    "BILLING": 12
+  }
+}

@@ -1,0 +1,28 @@
+Docker validation status: PASS
+
+Evidence source:
+Current Docker logs and endpoint smoke results confirmed by operator after Docker Desktop was fixed.
+
+Container:
+- files-mentioned-by-the-user-purplle-api-1 is running
+
+Startup:
+- Uvicorn startup complete
+
+Endpoint smoke checks:
+- GET /health returned 200
+- GET /stores/ST1008/metrics returned 200
+- GET /stores/ST1008/funnel returned 200
+- POST /events/ingest returned 200
+- GET /stores/ST1008/heatmap returned 200
+- GET /stores/ST1008/anomalies returned 200
+
+Structured logging:
+- Logs include trace_id
+- Logs include store_id
+- Logs include endpoint
+- Logs include latency_ms
+- Logs include status_code
+
+Conclusion:
+Docker startup and required endpoint smoke checks passed.

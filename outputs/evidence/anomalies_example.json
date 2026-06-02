@@ -1,0 +1,15 @@
+﻿{
+    "store_id":  "ST1008",
+    "active_anomalies":  [
+                             {
+                                 "type":  "BILLING_QUEUE_SPIKE",
+                                 "severity":  "CRITICAL",
+                                 "suggested_action":  "Open another billing station or assign floor staff to billing."
+                             },
+                             {
+                                 "type":  "CONVERSION_DROP",
+                                 "severity":  "WARN",
+                                 "suggested_action":  "Check staff coverage and product assistance in high-dwell zones."
+                             }
+                         ]
+}

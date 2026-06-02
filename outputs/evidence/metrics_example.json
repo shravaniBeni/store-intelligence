@@ -1,0 +1,13 @@
+﻿{
+    "store_id":  "ST1008",
+    "unique_visitors":  56,
+    "converted_visitors":  0,
+    "conversion_rate":  0.0,
+    "avg_dwell_per_zone_ms":  {
+                                  "MAKEUP_WALL":  43242.86,
+                                  "PMU":  71625,
+                                  "SKINCARE_WALL":  40400
+                              },
+    "queue_depth":  4,
+    "abandonment_rate":  0.0
+}

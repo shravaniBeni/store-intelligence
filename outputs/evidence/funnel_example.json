@@ -1,0 +1,26 @@
+﻿{
+    "store_id":  "ST1008",
+    "unit":  "session",
+    "stages":  [
+                   {
+                       "stage":  "entry",
+                       "count":  56,
+                       "dropoff_from_previous":  0.0
+                   },
+                   {
+                       "stage":  "zone_visit",
+                       "count":  52,
+                       "dropoff_from_previous":  0.0714
+                   },
+                   {
+                       "stage":  "billing_queue",
+                       "count":  3,
+                       "dropoff_from_previous":  0.9423
+                   },
+                   {
+                       "stage":  "purchase",
+                       "count":  0,
+                       "dropoff_from_previous":  1.0
+                   }
+               ]
+}

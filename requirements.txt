@@ -1,0 +1,11 @@
+fastapi==0.124.2
+uvicorn[standard]==0.38.0
+pydantic==2.13.4
+pytest==9.0.2
+pytest-cov==7.0.0
+coverage==7.13.0
+httpx==0.28.1
+ultralytics==8.3.237
+lap==0.5.12
+opencv-python-headless==4.13.0.92
+numpy==2.4.6

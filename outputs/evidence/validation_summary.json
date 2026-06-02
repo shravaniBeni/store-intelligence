@@ -1,0 +1,66 @@
+{
+  "canonical_store_id": "ST1008",
+  "schema_valid_events": 161,
+  "event_counts": {
+    "ENTRY": 6,
+    "EXIT": 3,
+    "REENTRY": 3,
+    "ZONE_ENTER": 70,
+    "ZONE_EXIT": 11,
+    "ZONE_DWELL": 62,
+    "BILLING_QUEUE_JOIN": 6
+  },
+  "ingest": {
+    "accepted": 161,
+    "duplicates": 0,
+    "failed": 0
+  },
+  "metrics": {
+    "unique_visitors": 56,
+    "queue_depth": 4,
+    "conversion_rate": 0
+  },
+  "coverage": {
+    "tests": 14,
+    "passed": 14,
+    "total_percent": 89,
+    "status": "PASS"
+  },
+  "prompt_blocks": {
+    "status": "PASS",
+    "requirement": "Every test file includes # PROMPT: and # CHANGES MADE:"
+  },
+  "endpoints": {
+    "ingest": "PASS",
+    "metrics": "PASS",
+    "funnel": "PASS",
+    "heatmap": "PASS",
+    "anomalies": "PASS",
+    "health": "PASS"
+  },
+  "health": {
+    "status": "ok",
+    "expected_warning": "STALE_FEED",
+    "database_failure_handling": "PASS - /health returns structured degraded status when database access fails"
+  },
+  "docker": {
+    "status": "PASS",
+    "container": "files-mentioned-by-the-user-purplle-api-1",
+    "startup": "Uvicorn startup complete",
+    "endpoint_smoke": {
+      "POST /events/ingest": 200,
+      "GET /health": 200,
+      "GET /stores/ST1008/metrics": 200,
+      "GET /stores/ST1008/funnel": 200,
+      "GET /stores/ST1008/heatmap": 200,
+      "GET /stores/ST1008/anomalies": 200
+    },
+    "structured_logs": [
+      "trace_id",
+      "store_id",
+      "endpoint",
+      "latency_ms",
+      "status_code"
+    ]
+  }
+}

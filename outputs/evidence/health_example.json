@@ -1,0 +1,11 @@
+﻿{
+    "status":  "ok",
+    "database":  "ok",
+    "stores":  {
+                   "ST1008":  {
+                                  "last_event_timestamp":  "2026-04-10T20:13:11.560000+00:00",
+                                  "lag_seconds":  4515349,
+                                  "warning":  "STALE_FEED"
+                              }
+               }
+}
