@@ -10,6 +10,7 @@ The system has four layers:
 2. An ingest API validates, deduplicates, and stores events.
 3. An analytics layer computes metrics, funnel, heatmap, anomalies, and health status.
 4. A replay command can stream generated events into the API for a live demonstration.
+5. A lightweight dashboard consumes the API endpoints and provides a reviewer-friendly operational view of metrics, funnel, heatmap, anomalies, and health status.
 
 The primary detection strategy is YOLOv8n person detection with ByteTrack tracking. This is chosen because the challenge evaluates group entry, occlusion, crowded billing, tracking accuracy, and re-entry handling. OpenCV background subtraction is kept only as a diagnostic/emergency fallback concept, not as the main event generator.
 
@@ -54,6 +55,10 @@ The metrics layer computes:
 
 The `/health` endpoint reports `STALE_FEED` when the last event is more than 10 minutes behind current system time. That warning is expected for this submission evidence because the CCTV timestamps are historical (`2026-04-10`), not live current-time feeds.
 
+## Deployment and Reproducibility
+
+The submission includes Docker Compose support so evaluators can reproduce the API and analytics environment with a single command. SQLite was selected to avoid requiring external infrastructure during evaluation while still keeping the storage layer replaceable for future production deployments.
+
 ## Assumptions
 
 - The CCTV clips are representative samples, not a full store day.
@@ -65,7 +70,7 @@ The `/health` endpoint reports `STALE_FEED` when the last event is more than 10 
 
 ## Validation Evidence
 
-The latest reviewed sample produced 161 schema-valid events: 6 `ENTRY`, 3 `EXIT`, 3 `REENTRY`, 70 `ZONE_ENTER`, 11 `ZONE_EXIT`, 62 `ZONE_DWELL`, and 6 `BILLING_QUEUE_JOIN` events. Replay accepted all 161 events with 0 duplicates and 0 malformed failures.
+The reviewed validation sample produced 161 schema-valid events: 6 `ENTRY`, 3 `EXIT`, 3 `REENTRY`, 70 `ZONE_ENTER`, 11 `ZONE_EXIT`, 62 `ZONE_DWELL`, and 6 `BILLING_QUEUE_JOIN` events. Replay accepted all 161 events with 0 duplicates and 0 malformed failures.
 
 Endpoint evidence is saved under `outputs/evidence/`, including metrics, funnel, health, event-quality summary, Docker startup log, and annotated camera screenshots.
 
