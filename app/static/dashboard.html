@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Store Intelligence Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, Helvetica, sans-serif;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #637083;
+      --line: #dde3ea;
+      --accent: #1666c5;
+      --warn: #b26000;
+      --critical: #b42318;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    input,
+    button {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      padding: 0 10px;
+    }
+
+    button {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    main {
+      padding: 22px 0 32px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 18px;
+      margin-bottom: 14px;
+    }
+
+    .cards,
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 12px;
+    }
+
+    .grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .card,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .value {
+      margin-top: 8px;
+      font-size: 30px;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .bar {
+      height: 8px;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eef2f6;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #eef2f6;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge.WARN {
+      background: #fff3df;
+      color: var(--warn);
+    }
+
+    .badge.CRITICAL {
+      background: #fde8e6;
+      color: var(--critical);
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 820px) {
+      .topbar,
+      .controls {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .cards,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap topbar">
+      <h1>Store Intelligence Dashboard</h1>
+      <div class="controls">
+        <input id="storeId" aria-label="Store ID" value="ST1008">
+        <button id="refresh" type="button">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="status" class="status">Loading store metrics...</div>
+
+    <section class="cards" aria-label="Summary metrics">
+      <div class="card">
+        <div class="label">Visitors</div>
+        <div id="visitors" class="value">-</div>
+      </div>
+      <div class="card">
+        <div class="label">Conversion</div>
+        <div id="conversion" class="value">-</div>
+      </div>
+      <div class="card">
+        <div class="label">Queue depth</div>
+        <div id="queueDepth" class="value">-</div>
+      </div>
+      <div class="card">
+        <div class="label">Anomalies</div>
+        <div id="anomalyCount" class="value">-</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Funnel stages</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Count</th>
+              <th>Dropoff</th>
+            </tr>
+          </thead>
+          <tbody id="funnelRows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Heatmap zones</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>Visits</th>
+              <th>Avg dwell</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody id="heatmapRows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Active anomalies</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Type</th>
+              <th>Suggested action</th>
+            </tr>
+          </thead>
+          <tbody id="anomalyRows"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Dwell by zone</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Zone</th>
+              <th>Dwell</th>
+            </tr>
+          </thead>
+          <tbody id="dwellRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const storeInput = document.getElementById("storeId");
+
+    function pct(value) {
+      return `${Math.round((Number(value) || 0) * 1000) / 10}%`;
+    }
+
+    function ms(value) {
+      const seconds = Math.round((Number(value) || 0) / 1000);
+      return `${seconds}s`;
+    }
+
+    function cell(text) {
+      const td = document.createElement("td");
+      td.textContent = text;
+      return td;
+    }
+
+    function setRows(id, rows, render, emptyMessage) {
+      const tbody = document.getElementById(id);
+      tbody.innerHTML = "";
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = cell(emptyMessage);
+        td.colSpan = 4;
+        td.className = "empty";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      rows.forEach((row) => tbody.appendChild(render(row)));
+    }
+
+    async function getJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`${url} returned ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function loadDashboard() {
+      const storeId = storeInput.value.trim() || "ST1008";
+      statusEl.textContent = `Loading ${storeId}...`;
+      try {
+        const [metrics, funnel, heatmap, anomalies] = await Promise.all([
+          getJson(`/stores/${encodeURIComponent(storeId)}/metrics`),
+          getJson(`/stores/${encodeURIComponent(storeId)}/funnel`),
+          getJson(`/stores/${encodeURIComponent(storeId)}/heatmap`),
+          getJson(`/stores/${encodeURIComponent(storeId)}/anomalies`),
+        ]);
+
+        document.getElementById("visitors").textContent = metrics.unique_visitors ?? "-";
+        document.getElementById("conversion").textContent = pct(metrics.conversion_rate);
+        document.getElementById("queueDepth").textContent = metrics.queue_depth ?? "-";
+        document.getElementById("anomalyCount").textContent = anomalies.active_anomalies?.length ?? 0;
+
+        setRows("funnelRows", funnel.stages || [], (stage) => {
+          const tr = document.createElement("tr");
+          tr.append(cell(stage.stage));
+          tr.append(cell(stage.count));
+          tr.append(cell(pct(stage.dropoff_from_previous)));
+          return tr;
+        }, "No funnel data");
+
+        setRows("heatmapRows", heatmap.zones || [], (zone) => {
+          const tr = document.createElement("tr");
+          tr.append(cell(zone.zone_id));
+          tr.append(cell(zone.visit_frequency));
+          tr.append(cell(ms(zone.avg_dwell_ms)));
+          const score = document.createElement("td");
+          const bar = document.createElement("div");
+          const fill = document.createElement("span");
+          bar.className = "bar";
+          fill.style.width = `${Math.max(0, Math.min(100, Number(zone.normalized_score) || 0))}%`;
+          bar.appendChild(fill);
+          score.appendChild(bar);
+          tr.append(score);
+          return tr;
+        }, "No heatmap data");
+
+        setRows("anomalyRows", anomalies.active_anomalies || [], (anomaly) => {
+          const tr = document.createElement("tr");
+          const severity = document.createElement("td");
+          const badge = document.createElement("span");
+          badge.className = `badge ${anomaly.severity || ""}`;
+          badge.textContent = anomaly.severity || "INFO";
+          severity.appendChild(badge);
+          tr.append(severity);
+          tr.append(cell(anomaly.type));
+          tr.append(cell(anomaly.suggested_action));
+          return tr;
+        }, "No active anomalies");
+
+        const dwellRows = Object.entries(metrics.avg_dwell_per_zone_ms || {}).map(([zone, dwell]) => ({ zone, dwell }));
+        setRows("dwellRows", dwellRows, (row) => {
+          const tr = document.createElement("tr");
+          tr.append(cell(row.zone));
+          tr.append(cell(ms(row.dwell)));
+          return tr;
+        }, "No dwell data");
+
+        statusEl.textContent = `Updated ${new Date().toLocaleTimeString()} for ${storeId}`;
+      } catch (error) {
+        statusEl.textContent = `Dashboard load failed: ${error.message}`;
+      }
+    }
+
+    document.getElementById("refresh").addEventListener("click", loadDashboard);
+    loadDashboard();
+  </script>
+</body>
+</html>

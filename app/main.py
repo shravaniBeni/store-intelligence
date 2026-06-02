@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Body, FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import ValidationError
 
 from app import analytics, storage
@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 app = FastAPI(title="Store Intelligence API", version="1.0.0")
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @app.on_event("startup")
@@ -95,6 +96,11 @@ async def get_heatmap(id: str):
 @app.get("/stores/{id}/anomalies")
 async def get_anomalies(id: str):
     return analytics.anomalies(id)
+
+
+@app.get("/dashboard")
+async def get_dashboard():
+    return FileResponse(STATIC_DIR / "dashboard.html")
 
 
 @app.get("/health")

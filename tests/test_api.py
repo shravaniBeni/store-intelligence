@@ -1,5 +1,5 @@
-# PROMPT: Generate API tests for the Store Intelligence challenge covering ingest idempotency, malformed-event partial success, zero traffic, all-staff exclusion, POS conversion correlation, funnel re-entry dedupe, heatmap bounds, anomalies, and health.
-# CHANGES MADE: Kept the tests deterministic with handcrafted fixture events so endpoint correctness is independent of YOLO model downloads or GPU availability.
+# PROMPT: Generate API tests for the Store Intelligence challenge covering ingest idempotency, malformed-event partial success, zero traffic, all-staff exclusion, POS conversion correlation, funnel re-entry dedupe, heatmap bounds, anomalies, health, and the lightweight dashboard route.
+# CHANGES MADE: Kept the tests deterministic with handcrafted fixture events so endpoint correctness is independent of YOLO model downloads or GPU availability; added a static dashboard smoke test without changing API behavior.
 
 from __future__ import annotations
 
@@ -169,3 +169,10 @@ def test_health_reports_database_unavailable(monkeypatch):
     assert body["status"] == "degraded"
     assert body["database"] == "unavailable"
     assert body["error"]["type"] == "OSError"
+
+
+def test_dashboard_route_serves_static_html():
+    api = client()
+    response = api.get("/dashboard")
+    assert response.status_code == 200
+    assert "Store Intelligence Dashboard" in response.text
