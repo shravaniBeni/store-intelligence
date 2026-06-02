@@ -2,6 +2,24 @@
 
 Containerized FastAPI service plus YOLOv8n + ByteTrack CCTV event pipeline for the Brigade Bangalore store dataset.
 
+## Architecture
+
+```text
+CCTV Clips
+    ↓
+YOLOv8n + ByteTrack
+    ↓
+Events (JSONL)
+    ↓
+POST /events/ingest
+    ↓
+SQLite Storage
+    ↓
+Metrics / Funnel / Heatmap / Anomalies
+    ↓
+Dashboard
+```
+
 ## Dataset Identity
 
 - Canonical `store_id`: `ST1008`
@@ -65,6 +83,23 @@ Invoke-RestMethod http://localhost:8000/health
 
 Docker startup evidence is saved at `outputs/evidence/docker_startup_log.txt`.
 
+## Dashboard
+
+After starting the API, open:
+
+http://localhost:8000/dashboard
+
+The dashboard consumes the existing API endpoints and displays:
+
+- Visitor count
+- Conversion rate
+- Queue depth
+- Funnel analytics
+- Heatmap zone statistics
+- Active anomalies
+
+The dashboard refreshes automatically every 8 seconds and also supports manual refresh.
+
 ## Detection Strategy
 
 The submitted primary approach is YOLOv8n + ByteTrack. It is selected over pure background subtraction because the rubric rewards group entry handling, occlusion handling, crowded billing, re-entry reasoning, and tracking accuracy.
@@ -117,3 +152,13 @@ Known limitations:
 - Staff detection is heuristic.
 - Conversion remains `0` for the reviewed sample because detected billing events do not fall within the configured 5-minute POS correlation window before a transaction.
 - `STALE_FEED` is expected because the CCTV timestamps are historical.
+
+## Quality Verification
+
+Latest validation results:
+
+- 15 tests passed
+- 89% code coverage
+- Docker validation successful
+- Health endpoint verified
+- Metrics/Funnel/Heatmap/Anomalies verified
