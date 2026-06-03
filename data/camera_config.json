@@ -6,6 +6,7 @@
   "cameras": {
     "CAM_1": {
       "role": "main_floor_skincare",
+      "aliases": ["CAM 1", "CAM 1 - zone"],
       "mapping_basis": "Visual inspection shows skincare walls such as The Face Shop, Good Vibes, DermDoc, Minimalist and AquLogica.",
       "zones": {
         "SKINCARE_WALL": [40, 80, 1540, 820],
@@ -14,6 +15,7 @@
     },
     "CAM_2": {
       "role": "main_floor_makeup",
+      "aliases": ["CAM 2", "CAM 2 - zone", "zone"],
       "mapping_basis": "Visual inspection shows Lakme, Faces Canada, Maybelline, accessories and makeup browsing areas.",
       "zones": {
         "MAKEUP_WALL": [560, 90, 1880, 890],
@@ -23,6 +25,7 @@
     },
     "CAM_3": {
       "role": "entry_exit",
+      "aliases": ["CAM 3", "CAM 3 - entry", "entry", "entry 1", "entry 2"],
       "mapping_basis": "Visual inspection shows glass entrance threshold and outside walkway.",
       "entry_line_y": 520,
       "inbound_crossing_direction": "down",
@@ -32,6 +35,7 @@
     },
     "CAM_4": {
       "role": "backroom_storage",
+      "aliases": ["CAM 4"],
       "mapping_basis": "Visual inspection shows storage/backroom area, so this is excluded from customer metrics by default.",
       "exclude_from_customer_metrics": true,
       "zones": {
@@ -40,6 +44,7 @@
     },
     "CAM_5": {
       "role": "billing",
+      "aliases": ["CAM 5", "CAM 5 - billing", "billing", "billing_area"],
       "mapping_basis": "Visual inspection shows cash counter, billing workstation and cashier-side activity.",
       "zones": {
         "BILLING": [0, 240, 760, 980],

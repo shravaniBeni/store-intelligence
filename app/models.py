@@ -26,6 +26,7 @@ class EventMetadata(BaseModel):
     source_track_id: str | None = None
     reid_reason: str | None = None
     staff_reason: str | None = None
+    raw_source: dict[str, Any] | None = None
 
 
 class StoreEvent(BaseModel):
@@ -69,4 +70,3 @@ class Transaction(BaseModel):
     transaction_id: str
     timestamp: datetime
     basket_value_inr: float = Field(ge=0)
-

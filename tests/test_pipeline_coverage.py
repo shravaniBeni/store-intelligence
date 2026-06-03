@@ -15,7 +15,10 @@ from pipeline.config import CameraConfig
 from pipeline.detect import (
     SessionLinker,
     billing_depth,
+    camera_alias_map,
     camera_id_from_path,
+    canonical_camera_id_for_path,
+    discover_clips,
     distance,
     dominant_zone,
     first_threshold_event_type,
@@ -24,6 +27,7 @@ from pipeline.detect import (
     run_yolo_bytetrack,
     threshold_event_type,
 )
+from pipeline.adapt_events import adapt_jsonl, adapt_record
 from pipeline.emit import make_event, write_jsonl
 from pipeline.prepare_pos import normalize_pos
 from pipeline.replay import post_batch, replay
@@ -144,6 +148,98 @@ def test_pos_normalization_aggregates_invoice_lines(tmp_path):
         "basket_value_inr": "151.00",
     }
     assert rows[1]["basket_value_inr"] == "0.00"
+
+
+def test_pos_normalization_supports_new_order_id_format(tmp_path):
+    source = tmp_path / "raw_pos_new.csv"
+    source.write_text(
+        "\n".join(
+            [
+                "order_id,order_date,order_time,store_id,product_id,brand_name,total_amount",
+                "1,10-04-2026,12:15:05,ST1008,399945,Faces Canada,302.33",
+                "1,10-04-2026,12:15:05,ST1008,353621,Faces Canada,491.77",
+                "2,10-04-2026,12:42:18,ST1008,407887,Purplle,1",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    output = tmp_path / "normalized" / "pos.csv"
+    assert normalize_pos(source, output) == 2
+    rows = list(csv.DictReader(output.open(encoding="utf-8")))
+    assert rows[0] == {
+        "store_id": "ST1008",
+        "transaction_id": "1",
+        "timestamp": "2026-04-10T12:15:05Z",
+        "basket_value_inr": "794.10",
+    }
+    assert rows[1]["transaction_id"] == "2"
+    assert rows[1]["basket_value_inr"] == "1.00"
+
+
+def test_flexible_clip_discovery_and_alias_mapping(tmp_path):
+    nested = tmp_path / "Store 1"
+    nested.mkdir()
+    billing = nested / "CAM 5 - billing.mp4"
+    unknown = nested / "random-camera.mp4"
+    billing.write_bytes(b"")
+    unknown.write_bytes(b"")
+    cameras = {
+        "CAM_5": CameraConfig(
+            camera_id="CAM_5",
+            role="billing",
+            zones={"BILLING": (0, 0, 100, 100)},
+            aliases=("CAM 5 - billing", "billing_area"),
+        )
+    }
+    aliases = camera_alias_map(cameras)
+    assert discover_clips(tmp_path) == [billing, unknown]
+    assert canonical_camera_id_for_path(billing, aliases) == "CAM_5"
+    assert canonical_camera_id_for_path(Path("billing_area.mp4"), aliases) == "CAM_5"
+    assert canonical_camera_id_for_path(unknown, aliases) is None
+
+
+def test_organizer_sample_event_adapter_and_canonical_passthrough(tmp_path):
+    organizer = {
+        "event_type": "queue_completed",
+        "track_id": 102,
+        "store_id": "ST1076",
+        "camera_id": "PURPLLE_MUM_1076_CAM6",
+        "zone_id": "PURPLLE_MUM_1076_Z_BILLING_01",
+        "zone_name": "Billing Counter Queue",
+        "queue_join_ts": "2026-03-08T18:13:05.080000",
+        "queue_served_ts": "2026-03-08T18:13:13.240000",
+        "queue_exit_ts": "2026-03-08T18:15:31.840000",
+        "wait_seconds": 8,
+        "gender": "M",
+    }
+    adapted = adapt_record(organizer, 4)
+    parsed = StoreEvent.model_validate(adapted)
+    assert parsed.event_type == "BILLING_QUEUE_JOIN"
+    assert parsed.visitor_id == "102"
+    assert parsed.timestamp.tzinfo is not None
+    assert parsed.dwell_ms == 8000
+    assert parsed.confidence == 1.0
+    assert parsed.metadata.sku_zone == "Billing Counter Queue"
+    assert parsed.metadata.session_seq == 4
+    assert parsed.metadata.raw_source["queue_served_ts"] == "2026-03-08T18:13:13.240000"
+
+    canonical = make_event(
+        store_id="ST1008",
+        camera_id="CAM_3",
+        visitor_id="VIS_CANON",
+        event_type="ENTRY",
+        timestamp=datetime(2026, 4, 10, 12, tzinfo=timezone.utc),
+        zone_id=None,
+    )
+    assert adapt_record(canonical, 1) == canonical
+
+    source = tmp_path / "organizer.jsonl"
+    output = tmp_path / "canonical.jsonl"
+    source.write_text(json.dumps(organizer) + "\n" + json.dumps(canonical) + "\n", encoding="utf-8")
+    assert adapt_jsonl(source, output) == 2
+    rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert rows[0]["event_type"] == "BILLING_QUEUE_JOIN"
+    assert rows[1] == canonical
 
 
 def test_replay_posts_batches_and_skips_blank_lines(tmp_path, monkeypatch):

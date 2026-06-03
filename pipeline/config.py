@@ -22,6 +22,7 @@ class CameraConfig:
     camera_id: str
     role: str
     zones: dict[str, tuple[int, int, int, int]]
+    aliases: tuple[str, ...] = ()
     entry_line_y: int | None = None
     inbound_crossing_direction: str = "down"
     exclude_from_customer_metrics: bool = False
@@ -36,6 +37,7 @@ def load_camera_config(path: Path) -> dict[str, CameraConfig]:
             camera_id=camera_id,
             role=item["role"],
             zones={name: tuple(box) for name, box in item.get("zones", {}).items()},
+            aliases=tuple(item.get("aliases", ())),
             entry_line_y=item.get("entry_line_y"),
             inbound_crossing_direction=item.get("inbound_crossing_direction", "down"),
             exclude_from_customer_metrics=item.get("exclude_from_customer_metrics", False),

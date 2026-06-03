@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Iterable
@@ -15,6 +16,35 @@ PERSON_CLASS_ID = 0
 
 def camera_id_from_path(path: Path) -> str:
     return path.stem.upper().replace(" ", "_")
+
+
+def normalize_camera_name(value: str) -> str:
+    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", value.lower())).strip("_")
+
+
+def camera_alias_map(cameras: dict[str, CameraConfig]) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for camera_id, config in cameras.items():
+        aliases[normalize_camera_name(camera_id)] = camera_id
+        aliases[normalize_camera_name(camera_id.replace("_", " "))] = camera_id
+        for alias in config.aliases:
+            aliases[normalize_camera_name(alias)] = camera_id
+    return aliases
+
+
+def canonical_camera_id_for_path(path: Path, aliases: dict[str, str]) -> str | None:
+    candidates = [
+        normalize_camera_name(path.stem),
+        normalize_camera_name(camera_id_from_path(path)),
+    ]
+    for candidate in candidates:
+        if candidate in aliases:
+            return aliases[candidate]
+    return None
+
+
+def discover_clips(clips_root: Path) -> list[Path]:
+    return sorted(clips_root.rglob("*.mp4"))
 
 
 def in_box(point: tuple[float, float], box: tuple[int, int, int, int]) -> bool:
@@ -98,14 +128,16 @@ def run_yolo_bytetrack(
 
     model = YOLO(model_name)
     cameras = load_camera_config(camera_config_path)
+    aliases = camera_alias_map(cameras)
     billing_camera_ids = {camera_id for camera_id, config in cameras.items() if config.role == "billing"}
     linker = SessionLinker()
     events: list[dict] = []
     track_state: dict[str, dict] = {}
 
     for clip in clips:
-        camera_id = camera_id_from_path(clip)
-        if camera_id not in cameras:
+        camera_id = canonical_camera_id_for_path(clip, aliases)
+        if camera_id is None or camera_id not in cameras:
+            print(f"Skipping unmapped camera clip: {clip}")
             continue
         config = cameras[camera_id]
         start = datetime.fromisoformat(START_TIME_BY_CAMERA[camera_id])
@@ -223,7 +255,7 @@ def main() -> None:
     parser.add_argument("--max-frames", type=int)
     parser.add_argument("--camera-config", type=Path, default=default_camera_config_path())
     args = parser.parse_args()
-    clips = sorted(args.clips.glob("CAM *.mp4"))
+    clips = discover_clips(args.clips)
     events = run_yolo_bytetrack(clips, args.output, args.model, args.frame_stride, args.max_frames, args.camera_config)
     print(f"wrote {len(events)} events to {args.output}")
 
