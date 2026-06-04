@@ -40,7 +40,9 @@ python -m venv .venv
 Normalize the provided POS export into invoice-level transactions:
 
 ```powershell
-.venv\Scripts\python -m pipeline.prepare_pos --input "C:\Users\shrav\Downloads\Brigade_Bangalore_10_April_26 (1)bc6219c (1).csv" --output data\pos_transactions.csv
+python -m pipeline.prepare_pos \
+  --input <pos_csv> \
+  --output data/pos_transactions.csv
 ```
 
 Start the API:
@@ -52,7 +54,10 @@ Start the API:
 In another terminal, process the CCTV clips and replay events:
 
 ```powershell
-.venv\Scripts\python -m pipeline.detect --clips "C:\Users\shrav\Downloads\CCTV Footage-20260529T160731Z-3-00144614ea\CCTV Footage" --output data\events.jsonl --frame-stride 10
+python -m pipeline.detect \
+  --clips <clips_folder> \
+  --output data/events.jsonl \
+  --frame-stride 10
 .venv\Scripts\python -m pipeline.replay --events data\events.jsonl --api http://127.0.0.1:8000 --batch-size 200 --delay 0
 ```
 
@@ -161,7 +166,7 @@ Known limitations:
 
 Latest validation results:
 
-- 18 tests passed
+- 20 tests passed
 - 89% code coverage
 - Docker validation successful
 - Health endpoint verified
