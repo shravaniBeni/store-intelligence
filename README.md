@@ -119,7 +119,7 @@ The detector recursively discovers .mp4 clips and maps camera roles through alia
 
 ## Validated Evidence
 
-The latest reviewed sample is `data/events.jsonl` and `outputs/evidence/sample_events.jsonl`.
+The latest reviewed canonical API event log is `data/events.jsonl`. For organizer sample-schema review, the same events are exported to `outputs/evidence/sample_schema_events.jsonl`.
 
 Final validation results:
 
@@ -140,6 +140,7 @@ Final validation results:
 Evidence files:
 
 - `outputs/evidence/sample_events.jsonl`
+- `outputs/evidence/sample_schema_events.jsonl`
 - `outputs/evidence/event_quality_summary.json`
 - `outputs/evidence/metrics_example.json`
 - `outputs/evidence/funnel_example.json`

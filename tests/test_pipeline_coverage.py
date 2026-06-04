@@ -29,6 +29,7 @@ from pipeline.detect import (
 )
 from pipeline.adapt_events import adapt_jsonl, adapt_record
 from pipeline.emit import make_event, write_jsonl
+from pipeline.export_sample_schema import export_jsonl, to_sample_schema
 from pipeline.prepare_pos import normalize_pos
 from pipeline.replay import post_batch, replay
 
@@ -240,6 +241,84 @@ def test_organizer_sample_event_adapter_and_canonical_passthrough(tmp_path):
     rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
     assert rows[0]["event_type"] == "BILLING_QUEUE_JOIN"
     assert rows[1] == canonical
+
+
+def test_sample_schema_exporter_maps_canonical_events(tmp_path):
+    zone_event = make_event(
+        store_id="ST1008",
+        camera_id="CAM_2",
+        visitor_id="VIS_ZONE",
+        event_type="ZONE_ENTER",
+        timestamp=datetime(2026, 4, 10, 12, 1, tzinfo=timezone.utc),
+        zone_id="MAKEUP_WALL",
+        confidence=0.66,
+        metadata={"session_seq": 3, "sku_zone": "Makeup Wall"},
+    )
+    exported_zone = to_sample_schema(zone_event)
+    assert exported_zone["event_type"] == "zone_entered"
+    assert exported_zone["id_token"] == "VIS_ZONE"
+    assert exported_zone["store_id"] == "ST1008"
+    assert exported_zone["store_code"] == "ST1008"
+    assert exported_zone["event_timestamp"] == "2026-04-10T12:01:00Z"
+    assert exported_zone["zone_id"] == "MAKEUP_WALL"
+    assert exported_zone["zone_name"] == "Makeup Wall"
+    assert exported_zone["session_seq"] == 3
+    assert exported_zone["confidence"] == 0.66
+
+    billing_event = make_event(
+        store_id="ST1008",
+        camera_id="CAM_5",
+        visitor_id="VIS_BILL",
+        event_type="BILLING_QUEUE_JOIN",
+        timestamp=datetime(2026, 4, 10, 12, 2, tzinfo=timezone.utc),
+        zone_id="BILLING",
+        dwell_ms=8500,
+        metadata={"queue_depth": 4},
+    )
+    exported_billing = to_sample_schema(billing_event)
+    assert exported_billing["event_type"] == "queue_joined"
+    assert exported_billing["queue_depth"] == 4
+    assert exported_billing["dwell_ms"] == 8500
+    assert exported_billing["wait_seconds"] == 8.5
+
+    dwell_event = make_event(
+        store_id="ST1008",
+        camera_id="CAM_1",
+        visitor_id="VIS_DWELL",
+        event_type="ZONE_DWELL",
+        timestamp=datetime(2026, 4, 10, 12, 3, tzinfo=timezone.utc),
+        zone_id="SKINCARE_WALL",
+        dwell_ms=30000,
+    )
+    assert to_sample_schema(dwell_event)["wait_seconds"] == 30
+
+
+def test_sample_schema_exporter_writes_same_number_of_records(tmp_path):
+    events = [
+        make_event(
+            store_id="ST1008",
+            camera_id="CAM_3",
+            visitor_id="VIS_ENTRY",
+            event_type="ENTRY",
+            timestamp=datetime(2026, 4, 10, 12, tzinfo=timezone.utc),
+            zone_id=None,
+        ),
+        make_event(
+            store_id="ST1008",
+            camera_id="CAM_3",
+            visitor_id="VIS_ENTRY",
+            event_type="REENTRY",
+            timestamp=datetime(2026, 4, 10, 12, 5, tzinfo=timezone.utc),
+            zone_id=None,
+        ),
+    ]
+    source = tmp_path / "canonical.jsonl"
+    output = tmp_path / "sample_schema.jsonl"
+    write_jsonl(events, source)
+    assert export_jsonl(source, output) == 2
+    rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert [row["event_type"] for row in rows] == ["entry", "reentry"]
+    assert all("id_token" in row for row in rows)
 
 
 def test_replay_posts_batches_and_skips_blank_lines(tmp_path, monkeypatch):
