@@ -20,6 +20,8 @@ The camera-role mapping lives in `data/camera_config.json`. The current mapping 
 
 The config includes each camera role, region-of-interest boxes, entry-line position, and whether a camera should be excluded from customer metrics by default. This keeps the implementation flexible: if CAM numbers differ, the operator updates the JSON instead of editing code.
 
+The detector recursively discovers `.mp4` clips and resolves camera roles through configurable aliases, allowing compatibility with both the original challenge resources and the updated Store 1 / Store 2 resource packs.
+
 The final reviewed mapping for this dataset is:
 
 - `CAM_1`: main-floor skincare / PMU
@@ -33,6 +35,8 @@ The canonical store identifier is `ST1008`, which comes from the real POS data. 
 ## Event Flow
 
 The detection pipeline emits events in the challenge schema. YOLOv8n produces person detections, ByteTrack assigns local track IDs, and the event emitter maps track movement into semantic events such as `ENTRY`, `EXIT`, `ZONE_ENTER`, `ZONE_DWELL`, and `BILLING_QUEUE_JOIN`.
+
+The PDF-style challenge schema remains the canonical internal schema. An optional adapter is provided for organizer sample-event resources that use different field names, ensuring compatibility without changing analytics or storage models.
 
 Re-entry is handled using heuristic session linking and probabilistic matching; it is not guaranteed person identity. The linker treats ByteTrack IDs as camera-local and creates visitor/session IDs from recent track behavior. If a new entry-side track appears near a recently exited track within a short time window, the pipeline can emit `REENTRY`. This is intentionally modest because faces are blurred and no POS customer identity is available.
 
