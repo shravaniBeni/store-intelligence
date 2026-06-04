@@ -82,6 +82,7 @@ Invoke-RestMethod http://localhost:8000/health
 ```
 
 Docker startup evidence is saved at `outputs/evidence/docker_startup_log.txt`.
+pipeline.prepare_pos supports both the original invoice-based POS export and the updated order_id-based sample POS format provided in the challenge resources.
 
 ## Dashboard
 
@@ -99,6 +100,7 @@ The dashboard consumes the existing API endpoints and displays:
 - Active anomalies
 
 The dashboard refreshes automatically every 8 seconds and also supports manual refresh.
+No additional backend endpoints are required; the dashboard is a thin visualization layer over the required challenge APIs.
 
 ## Detection Strategy
 
@@ -113,6 +115,7 @@ Camera roles are configurable in `data/camera_config.json`. The current mapping 
 - `CAM_5`: billing/cash-counter area
 
 Re-entry is handled using heuristic session linking and probabilistic matching; it is not guaranteed person identity. Staff detection is heuristic.
+The detector recursively discovers .mp4 clips and maps camera roles through aliases defined in data/camera_config.json, allowing compatibility with both the original challenge resources and the updated Store 1 / Store 2 resource packs.
 
 ## Validated Evidence
 
@@ -157,7 +160,7 @@ Known limitations:
 
 Latest validation results:
 
-- 15 tests passed
+- 18 tests passed
 - 89% code coverage
 - Docker validation successful
 - Health endpoint verified
