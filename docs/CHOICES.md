@@ -22,13 +22,15 @@ The `visitor_id` represents a visit-session token, not a verified human identity
 
 The metadata object carries queue depth, SKU/zone label, session sequence, source track ID, and explanatory reasons for staff/re-entry heuristics. I chose this because it keeps the core schema stable while giving reviewers enough evidence to understand how a particular event was produced.
 
+The internal schema remains the PDF-style challenge schema. An optional adapter is provided for organizer sample-event resources that use different field names, allowing compatibility while preserving a single canonical event model throughout the analytics pipeline.
+
 ## 3. API Architecture Choice
 
 I chose FastAPI with SQLite for the submitted implementation. FastAPI matches the challenge FAQ and makes request validation explicit through Pydantic models. SQLite is enough for this dataset and makes `docker compose up` reliable without requiring a separate database service. The storage layer is isolated so PostgreSQL could replace SQLite for a multi-store production rollout.
 
 The ingest endpoint is idempotent by `event_id` and accepts partial success because a real detection pipeline should not lose a whole batch because one event is malformed. Metrics, funnel, heatmap, anomalies, and health are computed from stored events and POS transactions. Tests use deterministic fixture events so API correctness does not depend on model downloads or GPU availability.
 
-The camera-role mapping is intentionally configurable through `data/camera_config.json`. The current roles are an initial camera-role mapping based on visual inspection, not a permanent assumption baked into code. If the evaluator or operator determines that camera roles differ in the actual footage, the config can be edited without changing the pipeline logic.
+The camera-role mapping is intentionally configurable through `data/camera_config.json`. The current roles are an initial camera-role mapping based on visual inspection, not a permanent assumption baked into code. If the evaluator or operator determines that camera roles differ in the actual footage, the config can be edited without changing the pipeline logic. The detector recursively discovers `.mp4` clips and resolves camera roles through configurable aliases. This allows compatibility with both the original challenge resources and the updated Store 1 / Store 2 resource packs without changing pipeline logic.
 
 For the reviewed sample, conversion rate is `0` for the reviewed sample. This is not hardcoded. The detected billing queue events occur around `20:09-20:10Z`, while the relevant later POS transaction in the normalized POS file is at `20:25:04Z`. Because the challenge defines conversion as a visitor being in the billing zone during the 5-minute window before a POS transaction, the reviewed event sample does not produce a converted visitor.
 
